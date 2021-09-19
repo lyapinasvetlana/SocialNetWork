@@ -12,13 +12,13 @@ namespace SocialNetWork.Config
 
         public static string SetConfig()
         {
-            Config.UserId = Environment.GetEnvironmentVariable("POSTGRES_USER_ID");
-            Config.Password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-            Config.Host = Environment.GetEnvironmentVariable("POSTGRES_HOST");
-            Config.Port = Environment.GetEnvironmentVariable("POSTGRES_PORT");
-            Config.Database = Environment.GetEnvironmentVariable("POSTGRES_DB");
+            Config.UserId = "postgres";
+            Config.Password = "1234";
+            Config.Host = "localhost";
+            Config.Port = "5432";
+            Config.Database = "postgres-0";
 
-            return $"Server={Host};Port={Port};User Id={UserId};Password={Password};Database={Database};SSL Mode=Require;Trust Server Certificate=true;";
+            return $"Server={Host};Port={Port};User Id={UserId};Password={Password};Database={Database};";
         }
         
     }

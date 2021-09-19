@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using SocialNetWork.ReverseProxyHttpsEnforcer;
 
 namespace SocialNetWork
 {
@@ -27,11 +26,12 @@ namespace SocialNetWork
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<ForwardedHeadersOptions>(options =>
+            
+            services.AddControllersWithViews(options =>
             {
-                options.ForwardedHeaders =
-                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.EnableEndpointRouting = false;
             });
+           
             services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationContext>(options =>
             {
                 options.UseNpgsql(Config.Config.SetConfig());
@@ -44,10 +44,14 @@ namespace SocialNetWork
             services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                    //options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 
                 })
-                .AddCookie()
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Home/";
+                    options.AccessDeniedPath = "/Home/";
+                })
                 .AddGoogle(options =>
                 {
                     options.ClientId = Environment.GetEnvironmentVariable("IDGOOGLE");
@@ -69,6 +73,7 @@ namespace SocialNetWork
             {
                 options.ValidationInterval = TimeSpan.Zero;   
             });*/
+            services.ConfigureApplicationCookie(options => options.LoginPath = "/Home");
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -77,34 +82,30 @@ namespace SocialNetWork
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseForwardedHeaders();
+                
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                app.UseForwardedHeaders();
-                app.UseReverseProxyHttpsEnforcer();
-                app.UseHsts();
+                
+                //app.UseHsts();
             }
 
-            app.Use((context, next) =>
-            {
-                context.Request.Scheme = "https";
-                return next();
-            });
+           
             
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+            app.UseMvc(routes =>
             {
-                endpoints.MapControllerRoute(
+                routes.MapRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }
